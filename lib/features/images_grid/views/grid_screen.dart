@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:pixaby_tw/features/images_grid/models/image.dart';
 import 'package:pixaby_tw/features/images_grid/views/widgets/image_view.dart';
 import 'package:pixaby_tw/features/images_grid_repository.dart';
@@ -19,7 +20,22 @@ class _GridScreenState extends State<GridScreen> {
     if (mounted) super.setState(fn);
   }
 
+  final _scrollController = ScrollController();
+
   PaginationModel<PixabyImage>? _images;
+  bool _loadMoreError = false;
+
+  void _registerResetListener() {
+    _scrollController.addListener(() {
+      final pos = _scrollController.position;
+
+      if (pos.userScrollDirection == ScrollDirection.reverse &&
+          pos.pixels > pos.maxScrollExtent &&
+          _loadMoreError) {
+        setState(() => _loadMoreError = false);
+      }
+    });
+  }
 
   Future<void> _loadImages({bool reset = false}) async {
     try {
@@ -28,9 +44,13 @@ class _GridScreenState extends State<GridScreen> {
       );
 
       _images = _images.update(res, reset: reset);
+      if (!reset) _loadMoreError = false;
       setState(() {});
     } catch (_) {
-      // TODO: handle error
+      if (!reset) {
+        _loadMoreError = true;
+        setState(() {});
+      }
     }
   }
 
@@ -38,7 +58,14 @@ class _GridScreenState extends State<GridScreen> {
   void initState() {
     super.initState();
 
+    _registerResetListener();
     _loadImages();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -47,21 +74,37 @@ class _GridScreenState extends State<GridScreen> {
       child: Scaffold(
         body: _images == null
             ? const Center(child: CircularProgressIndicator.adaptive())
-            : GridView.builder(
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  childAspectRatio: 1,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  maxCrossAxisExtent: 200,
+            : RefreshIndicator(
+                onRefresh: () => _loadImages(reset: true),
+                child: GridView.builder(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    childAspectRatio: 1,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    maxCrossAxisExtent: 200,
+                  ),
+                  itemBuilder: (context, index) {
+                    if (_images!.length == index && _images!.hasMore) {
+                      _loadImages();
+
+                      return const Center(
+                        child: CircularProgressIndicator.adaptive(),
+                      );
+                    }
+
+                    final image = _images![index];
+
+                    precacheImage(NetworkImage(image.largeImageURL), context);
+
+                    return PixabyImageView(image: image);
+                  },
+                  itemCount: _images!.length +
+                      (_images!.hasMore && !_loadMoreError ? 1 : 0),
                 ),
-                itemBuilder: (context, index) {
-                  final image = _images![index];
-
-                  precacheImage(NetworkImage(image.largeImageURL), context);
-
-                  return PixabyImageView(image: image);
-                },
-                itemCount: _images!.length,
               ),
       ),
     );
