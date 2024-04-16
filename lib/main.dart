@@ -13,10 +13,19 @@ class _MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: RouteGenerator.initialRoute,
       onGenerateRoute: RouteGenerator.onGenerateRoute,
+      themeMode: ThemeMode.light,
+      theme: ThemeData.light().copyWith(
+        pageTransitionsTheme: PageTransitionsTheme(
+          builders: Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
+            TargetPlatform.values,
+            value: (_) => const ZoomPageTransitionsBuilder(),
+          ),
+        ),
+      ),
     );
   }
 }
