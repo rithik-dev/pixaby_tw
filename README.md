@@ -2,6 +2,17 @@
 
 A new Flutter project.
 
+# Deployment Guide
+
+- Commit on `main`
+- git checkout `gh-pages`
+- Sync `gh-pages` with `main`
+- `flutter build web --release`
+- Commit on `gh-pages`
+- `git subtree push --prefix build/web origin gh-pages`
+
+GitHub Action takes over and deploys on GitHub pages
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
