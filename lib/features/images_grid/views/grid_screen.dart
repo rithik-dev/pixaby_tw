@@ -10,6 +10,8 @@ class GridScreen extends StatefulWidget {
 
   const GridScreen({super.key});
 
+  static const maxThumbnailWidth = 300.0;
+
   @override
   State<GridScreen> createState() => _GridScreenState();
 }
@@ -113,7 +115,7 @@ class _GridScreenState extends State<GridScreen> {
                         childAspectRatio: 1,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
-                        maxCrossAxisExtent: 200,
+                        maxCrossAxisExtent: GridScreen.maxThumbnailWidth,
                       ),
                       itemBuilder: (context, index) {
                         if (_images!.length == index && _images!.hasMore) {
@@ -125,12 +127,6 @@ class _GridScreenState extends State<GridScreen> {
                         }
 
                         final image = _images![index];
-
-                        precacheImage(
-                          NetworkImage(image.largeImageURL),
-                          context,
-                        );
-
                         return PixabyImageView(image: image);
                       },
                       itemCount: _images!.length +

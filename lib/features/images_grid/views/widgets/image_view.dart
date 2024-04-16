@@ -55,9 +55,13 @@ class PixabyImageView extends StatelessWidget {
                         color: Colors.red,
                       ),
                       const SizedBox(width: 5),
-                      Text(
-                        image.likes.toString(),
-                        style: const TextStyle(color: Colors.red),
+                      Flexible(
+                        child: Text(
+                          image.likes.toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       ),
                     ],
                   ),
@@ -71,7 +75,13 @@ class PixabyImageView extends StatelessWidget {
                         color: Colors.black,
                       ),
                       const SizedBox(width: 5),
-                      Text(image.views.toString()),
+                      Flexible(
+                        child: Text(
+                          image.views.toString(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ],
                   ),
                 ),
