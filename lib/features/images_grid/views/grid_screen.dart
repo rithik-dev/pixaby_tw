@@ -23,6 +23,7 @@ class _GridScreenState extends State<GridScreen> {
   final _scrollController = ScrollController();
 
   PaginationModel<PixabyImage>? _images;
+  Object? _error;
   bool _loadMoreError = false;
 
   void _registerResetListener() {
@@ -39,6 +40,11 @@ class _GridScreenState extends State<GridScreen> {
 
   Future<void> _loadImages({bool reset = false}) async {
     try {
+      if (reset && _error != null) {
+        _error = null;
+        setState(() {});
+      }
+
       final res = await ImagesGridRepository.instance.getImages(
         page: _images?.paginationKey,
       );
@@ -46,11 +52,14 @@ class _GridScreenState extends State<GridScreen> {
       _images = _images.update(res, reset: reset);
       if (!reset) _loadMoreError = false;
       setState(() {});
-    } catch (_) {
+    } catch (e) {
       if (!reset) {
         _loadMoreError = true;
-        setState(() {});
+      } else {
+        _error = e;
       }
+
+      setState(() {});
     }
   }
 
@@ -59,7 +68,7 @@ class _GridScreenState extends State<GridScreen> {
     super.initState();
 
     _registerResetListener();
-    _loadImages();
+    _loadImages(reset: true);
   }
 
   @override
@@ -72,40 +81,62 @@ class _GridScreenState extends State<GridScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: _images == null
-            ? const Center(child: CircularProgressIndicator.adaptive())
-            : RefreshIndicator(
-                onRefresh: () => _loadImages(reset: true),
-                child: GridView.builder(
-                  controller: _scrollController,
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
+        body: _error != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Something went wrong!',
+                    textAlign: TextAlign.center,
                   ),
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    maxCrossAxisExtent: 200,
+                  const SizedBox(height: 10),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () => _loadImages(reset: true),
+                      child: const Text('Retry'),
+                    ),
                   ),
-                  itemBuilder: (context, index) {
-                    if (_images!.length == index && _images!.hasMore) {
-                      _loadImages();
+                ],
+              )
+            : _images == null
+                ? const Center(child: CircularProgressIndicator.adaptive())
+                : RefreshIndicator(
+                    onRefresh: () => _loadImages(reset: true),
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        childAspectRatio: 1,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        maxCrossAxisExtent: 200,
+                      ),
+                      itemBuilder: (context, index) {
+                        if (_images!.length == index && _images!.hasMore) {
+                          _loadImages();
 
-                      return const Center(
-                        child: CircularProgressIndicator.adaptive(),
-                      );
-                    }
+                          return const Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          );
+                        }
 
-                    final image = _images![index];
+                        final image = _images![index];
 
-                    precacheImage(NetworkImage(image.largeImageURL), context);
+                        precacheImage(
+                          NetworkImage(image.largeImageURL),
+                          context,
+                        );
 
-                    return PixabyImageView(image: image);
-                  },
-                  itemCount: _images!.length +
-                      (_images!.hasMore && !_loadMoreError ? 1 : 0),
-                ),
-              ),
+                        return PixabyImageView(image: image);
+                      },
+                      itemCount: _images!.length +
+                          (_images!.hasMore && !_loadMoreError ? 1 : 0),
+                    ),
+                  ),
       ),
     );
   }
