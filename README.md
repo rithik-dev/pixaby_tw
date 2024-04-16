@@ -5,8 +5,8 @@ A new Flutter project.
 # Deployment Guide
 
 - Commit on `main`
-- git checkout `gh-pages`
-- Sync `gh-pages` with `main`
+- `git checkout gh-pages`
+- `git merge main`
 - `flutter build web --release`
 - Commit on `gh-pages`
 - `git subtree push --prefix build/web origin gh-pages`
