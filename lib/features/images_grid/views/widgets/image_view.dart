@@ -33,26 +33,26 @@ class PixabyImageView extends StatelessWidget {
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: _didHoverMap[image.id]!,
-              child: Hero(
-                tag: image.id,
-                child: CachedNetworkImage(
-                  imageUrl: image.previewURL,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
+              child: CachedNetworkImage(
+                imageUrl: image.previewURL,
+                fit: BoxFit.cover,
+                width: double.infinity,
               ),
               builder: (context, didHover, child) {
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    child!,
-                    if (didHover)
-                      CachedNetworkImage(
-                        imageUrl: image.largeImageURL,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                      ),
-                  ],
+                return Hero(
+                  tag: image.id,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      child!,
+                      if (didHover)
+                        CachedNetworkImage(
+                          imageUrl: image.largeImageURL,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                    ],
+                  ),
                 );
               },
             ),

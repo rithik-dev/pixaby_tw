@@ -22,9 +22,18 @@ class GridDetailsScreen extends StatelessWidget {
             Expanded(
               child: Hero(
                 tag: image.id,
-                child: CachedNetworkImage(
-                  imageUrl: image.largeImageURL,
-                  width: double.infinity,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: image.previewURL,
+                      width: double.infinity,
+                    ),
+                    CachedNetworkImage(
+                      imageUrl: image.largeImageURL,
+                      width: double.infinity,
+                    ),
+                  ],
                 ),
               ),
             ),
