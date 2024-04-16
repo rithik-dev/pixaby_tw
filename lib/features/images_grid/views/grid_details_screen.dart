@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:pixaby_tw/features/images_grid/models/image.dart';
 
@@ -21,21 +22,9 @@ class GridDetailsScreen extends StatelessWidget {
             Expanded(
               child: Hero(
                 tag: image.id,
-                child: Image.network(
-                  image.largeImageURL,
+                child: CachedNetworkImage(
+                  imageUrl: image.largeImageURL,
                   width: double.infinity,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-
-                    return Center(
-                      child: CircularProgressIndicator.adaptive(
-                        value: progress.expectedTotalBytes == null
-                            ? null
-                            : progress.cumulativeBytesLoaded /
-                                progress.expectedTotalBytes!,
-                      ),
-                    );
-                  },
                 ),
               ),
             ),
